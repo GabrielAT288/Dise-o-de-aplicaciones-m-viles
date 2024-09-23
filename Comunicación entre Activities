@@ -1,0 +1,151 @@
+<!-- Layout principal utilizando ConstraintLayout para una colocación flexible y responsive de los elementos UI -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!-- LinearLayout que actúa como formulario, centrado en la pantalla -->
+    <LinearLayout
+        android:id="@+id/formLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Campo de texto para ingresar el nombre -->
+        <EditText
+            android:id="@+id/etName"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre"
+            android:inputType="textPersonName"
+            android:padding="12dp" />
+
+        <!-- Campo de texto para ingresar el correo electrónico -->
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Correo electrónico"
+            android:inputType="textEmailAddress"
+            android:padding="12dp" />
+
+        <!-- Campo de texto para ingresar el número de teléfono -->
+        <EditText
+            android:id="@+id/etPhone"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Teléfono"
+            android:inputType="phone"
+            android:padding="12dp" />
+
+        <!-- Imagen de perfil, centrada dentro del LinearLayout -->
+        <ImageView
+            android:id="@+id/imageProfile"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:contentDescription="Imagen de perfil"
+            android:src="@drawable/im1" />
+
+        <!-- Botón para enviar la información del formulario -->
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:padding="12dp"
+            android:text="Enviar" />
+    </LinearLayout>
+
+    <!-- LinearLayout para la pantalla principal, inicialmente oculto -->
+    <LinearLayout
+        android:id="@+id/mainLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- TextView para mostrar los resultados o mensajes de salida -->
+        <TextView
+            android:id="@+id/tvOutput"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:textSize="18sp"
+            android:padding="16dp"/>
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+-------------------------------------------------------------------------------------------------------------------------
+
+
+package com.example.tuaplicacion
+
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.LinearLayout
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+// Clase principal que extiende AppCompatActivity para manejar la actividad
+class MainActivity : AppCompatActivity() {
+
+    // Declaración de variables lateinit para los componentes de la UI
+    private lateinit var formLayout: LinearLayout // Layout para el formulario de entrada de datos
+    private lateinit var mainLayout: LinearLayout // Layout para la pantalla principal de salida
+    private lateinit var etName: EditText         // Campo de texto para el nombre
+    private lateinit var etEmail: EditText        // Campo de texto para el correo electrónico
+    private lateinit var etPhone: EditText        // Campo de texto para el número de teléfono
+    private lateinit var btnSubmit: Button        // Botón de envío
+    private lateinit var tvOutput: TextView       // TextView para mostrar los datos de salida
+
+    // Método onCreate: se ejecuta cuando la actividad se crea
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main) // Establece el layout de la actividad
+
+        // Inicializa los componentes de la interfaz de usuario vinculándolos con los IDs del archivo XML
+        formLayout = findViewById(R.id.formLayout)
+        mainLayout = findViewById(R.id.mainLayout)
+        etName = findViewById(R.id.etName)
+        etEmail = findViewById(R.id.etEmail)
+        etPhone = findViewById(R.id.etPhone)
+        btnSubmit = findViewById(R.id.btnSubmit)
+        tvOutput = findViewById(R.id.tvOutput)
+
+        // Configura el comportamiento del botón 'Enviar'
+        btnSubmit.setOnClickListener {
+            showMainScreen() // Llama al método que muestra la pantalla principal
+        }
+    }
+
+    // Método para mostrar la pantalla principal con los datos ingresados en el formulario
+    private fun showMainScreen() {
+        // Obtiene los datos ingresados en los campos de texto del formulario
+        val name = etName.text.toString()  // Convierte el valor del campo de nombre a String
+        val email = etEmail.text.toString() // Convierte el valor del campo de correo a String
+        val phone = etPhone.text.toString() // Convierte el valor del campo de teléfono a String
+
+        // Muestra los datos ingresados en el TextView 'tvOutput' con formato
+        tvOutput.text = "Nombre: $name\nCorreo: $email\nTeléfono: $phone"
+
+        // Cambia la visibilidad de los layouts: oculta el formulario y muestra la pantalla principal
+        formLayout.visibility = View.GONE   // Oculta el layout del formulario
+        mainLayout.visibility = View.VISIBLE // Muestra el layout de la pantalla principal
+    }
+}
