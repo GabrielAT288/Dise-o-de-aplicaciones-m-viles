@@ -149,3 +149,5 @@ class MainActivity : AppCompatActivity() {
         mainLayout.visibility = View.VISIBLE // Muestra el layout de la pantalla principal
     }
 }
+
+
