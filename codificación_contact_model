@@ -1,0 +1,121 @@
+1. Estructura de la clase ContactoModel
+"Comenzamos con la clase ContactoModel, que se encarga de representar cada contacto con los siguientes atributos: nombre, telefono, email y imagenId, que es la referencia de la imagen de perfil.
+
+
+
+data class ContactoModel(
+    val nombre: String,
+    val telefono: String,
+    val email: String,
+    val imagenId: Int
+)
+Esta clase es un data class, lo que significa que Kotlin generará automáticamente algunos métodos útiles como toString(), hashCode() y equals(). Así, podemos manejar fácilmente los objetos ContactoModel."
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+2. Diseño de la interfaz XML para el ListView y cada ítem
+"Ahora veamos cómo diseñamos la interfaz en XML. En activity_main.xml, he definido un ListView que mostrará la lista de contactos. Aquí está el código:
+
+<ListView
+    android:id="@+id/listViewContactos"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
+El siguiente paso fue definir cómo se verá cada elemento del ListView. Para ello, creé el archivo list_item_contact.xml, que muestra los detalles del contacto: la imagen de perfil, el nombre, 
+el teléfono y el correo electrónico:
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+<LinearLayout ...>
+    <ImageView android:id="@+id/imageViewFoto" ... />
+    <LinearLayout ...>
+        <TextView android:id="@+id/textViewNombre" ... />
+        <TextView android:id="@+id/textViewTelefono" ... />
+        <TextView android:id="@+id/textViewEmail" ... />
+    </LinearLayout>
+</LinearLayout>
+Este diseño asegura que cada contacto se mostrará con su imagen de perfil a la izquierda y su información básica a la derecha."
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+3. Implementación del ContactAdapter
+"Para llenar el ListView con los contactos, creé un adaptador personalizado llamado ContactAdapter. Este adaptador extiende de BaseAdapter y es responsable de tomar los datos de la lista de contactos y 
+asociarlos con el diseño que acabamos de ver.
+
+Aquí está el código de la clase ContactAdapter:
+
+
+class ContactAdapter(private val context: Context, private val contactos: List<ContactoModel>) : BaseAdapter() {
+    override fun getCount(): Int = contactos.size
+    override fun getItem(position: Int): Any = contactos[position]
+    override fun getItemId(position: Int): Long = position.toLong()
+
+    override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+        val view: View = convertView ?: LayoutInflater.from(context).inflate(R.layout.list_item_contact, parent, false)
+
+        val contacto = contactos[position]
+
+        val nombreTextView = view.findViewById<TextView>(R.id.textViewNombre)
+        val telefonoTextView = view.findViewById<TextView>(R.id.textViewTelefono)
+        val emailTextView = view.findViewById<TextView>(R.id.textViewEmail)
+        val imageViewFoto = view.findViewById<ImageView>(R.id.imageViewFoto)
+
+        nombreTextView.text = contacto.nombre
+        telefonoTextView.text = contacto.telefono
+        emailTextView.text = contacto.email
+        imageViewFoto.setImageResource(contacto.imagenId)
+
+        return view
+    }
+}
+Este adaptador toma la lista de objetos ContactoModel y rellena cada fila del ListView con la información adecuada, utilizando el diseño del archivo list_item_contact.xml."
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+4. Configuración del ListView en MainActivity
+"En el archivo MainActivity.kt, configuré el ListView para que use el ContactAdapter y muestre una lista de contactos de ejemplo.
+
+
+val listViewContactos = findViewById<ListView>(R.id.listViewContactos)
+
+val contactos = listOf(
+    ContactoModel("Juan Pérez", "555-1234", "juan@example.com", R.drawable.ic_person),
+    ContactoModel("Ana López", "555-5678", "ana@example.com", R.drawable.ic_person),
+    ContactoModel("Carlos Díaz", "555-9101", "carlos@example.com", R.drawable.ic_person)
+)
+
+val adapter = ContactAdapter(this, contactos)
+listViewContactos.adapter = adapter
+De esta manera, se crea una lista de contactos y se muestra en el ListView usando el adaptador que definimos previamente."
+--------------------------------------------------------------------------------------------------------------------------------------------
+5. Funciones adicionales: Búsqueda, envío de correos y duplicados
+Búsqueda: "Implementé una función de búsqueda que permite filtrar la lista de contactos por nombre o número de teléfono:
+
+
+searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        return false
+    }
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        val filteredContacts = contactos.filter {
+            it.nombre.contains(newText!!, ignoreCase = true) || it.telefono.contains(newText, ignoreCase = true)
+        }
+        val adapter = ContactAdapter(this@MainActivity, filteredContacts)
+        listViewContactos.adapter = adapter
+        return true
+    }
+})
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Cada vez que el texto cambia, la lista de contactos se actualiza dinámicamente."
+
+Envío de correos: "En cada elemento del ListView, agregué un botón para enviar correos electrónicos. En el adaptador, configuré este botón con un Intent para abrir la aplicación de correo predeterminada:
+
+btnEnviarCorreo.setOnClickListener {
+    val intent = Intent(Intent.ACTION_SENDTO).apply {
+        data = Uri.parse("mailto:${contacto.email}")
+    }
+    context.startActivity(intent)
+}
+Al hacer clic en el botón, se abre la aplicación de correo con la dirección del contacto."
+
+Resaltado de duplicados: "Por último, agregué una función que resalta en color rojo los contactos que tienen el mismo número de teléfono, para detectar duplicados fácilmente:
+
+kotlin
+Copiar código
+if (contactos.count { it.telefono == contacto.telefono } > 1) {
+    view.setBackgroundColor(Color.parseColor("#FFCCCC"))
+}
+Si hay duplicados, el fondo del contacto cambia de color para hacerlos visibles."
