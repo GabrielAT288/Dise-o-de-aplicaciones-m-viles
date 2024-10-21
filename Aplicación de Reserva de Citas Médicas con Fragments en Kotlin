@@ -1,1 +1,351 @@
+activity_main.xml Este es el diseño de la actividad principal (MainActivity). Utiliza un RelativeLayout que contiene una Toolbar y un FragmentContainerView. La Toolbar se establece como la barra de acción de la aplicación, utilizando un color de fondo y un tema específicos. El FragmentContainerView es donde se cargarán los fragments (pantallas) de la aplicación, comenzando por DoctorSelectionFragment.
+<androidx.appcompat.widget.Toolbar
+    android:id="@+id/toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="?attr/actionBarSize"
+    android:background="?attr/colorPrimary"
+    android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+
+<androidx.fragment.app.FragmentContainerView
+    android:id="@+id/fragment_container_view"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_below="@id/toolbar" />
+
+
+MainActivity.kt MainActivity es la actividad principal de la aplicación. Se inicializa el ViewModel compartido para manejar la información que se pasará entre los fragments. La Toolbar se configura para ser la barra de acción de la actividad. Si es la primera vez que se crea la actividad, se carga el DoctorSelectionFragment.
+package com.example.reservadecitasmdicas
+
+import androidx.lifecycle.ViewModelProvider import android.os.Bundle import androidx.appcompat.app.AppCompatActivity import androidx.appcompat.widget.Toolbar
+
+class MainActivity : AppCompatActivity() { private lateinit var viewModel: SharedViewModel
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    setContentView(R.layout.activity_main)
+
+
+    val toolbar: Toolbar = findViewById(R.id.toolbar)
+    setSupportActionBar(toolbar)
+
+
+    viewModel = ViewModelProvider(this).get(SharedViewModel::class.java)
+
+    
+    if (savedInstanceState == null) {
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container_view, DoctorSelectionFragment())
+            .commit()
+    }
+}
+}
+
+
+
+3.fragment_doctor_selection.xml
+
+Este fragmento contiene un RecyclerView que se usará para mostrar una lista de doctores. Se utiliza un LinearLayout para organizar los elementos en una columna vertica
+
+<androidx.recyclerview.widget.RecyclerView
+    android:id="@+id/recyclerView_doctors"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" />
+
+
+fragment_appointment_details.xml
+Este fragmento permite al usuario ver el nombre y especialidad del doctor seleccionado y elegir una fecha y hora para la cita. Incluye un DatePicker para seleccionar la fecha y un TimePicker para seleccionar la hora. Un botón "Siguiente" se utiliza para avanzar a la siguiente pantalla.
+
+<TextView
+    android:id="@+id/textView_doctor_name"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Nombre del Doctor" />
+
+<TextView
+    android:id="@+id/textView_doctor_specialty"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Especialidad" />
+
+<DatePicker
+    android:id="@+id/datePicker"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
+
+<TimePicker
+    android:id="@+id/timePicker"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content" />
+
+<Button
+    android:id="@+id/button_next"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Siguiente" />
+image
+
+fragment_confirmation.xml
+Este fragmento muestra la información de la cita que se va a confirmar, incluyendo el nombre del doctor, especialidad, fecha y hora de la cita. Un botón "Confirmar" permite al usuario confirmar la cita.
+
+<TextView
+    android:id="@+id/textView_doctor_name"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Nombre del Doctor" />
+
+<TextView
+    android:id="@+id/textView_doctor_specialty"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Especialidad" />
+
+<TextView
+    android:id="@+id/textView_appointment_date"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Fecha" />
+
+<TextView
+    android:id="@+id/textView_appointment_time"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Hora" />
+
+<Button
+    android:id="@+id/button_confirm"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Confirmar" />
+
+
+item_doctor.xml
+Este diseño representa un ítem individual en la lista de doctores que se muestra en el RecyclerView. Contiene dos TextView que muestran el nombre y la especialidad del doctor.
+
+<TextView
+    android:id="@+id/textView_doctor_name"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Nombre del Doctor" />
+
+<TextView
+    android:id="@+id/textView_doctor_specialty"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:text="Especialidad" />
+
+
+Doctor.kt Este es un modelo de datos (data class) que representa a un doctor, incluyendo su nombre, especialidad y disponibilidad.
+package com.example.reservadecitasmdicas
+
+data class Doctor( val name: String, val specialty: String, val availability: String )
+
+
+
+DoctorAdapter.kt
+DoctorAdapter es un adaptador para el RecyclerView, encargado de mostrar la lista de doctores. El método onBindViewHolder vincula los datos del doctor a los elementos de la vista y establece un listener para la selección del doctor.
+
+package com.example.reservadecitasmdicas
+
+import android.view.LayoutInflater import android.view.View import android.view.ViewGroup import android.widget.TextView import androidx.recyclerview.widget.RecyclerView
+
+class DoctorAdapter( private val doctors: List, private val onDoctorSelected: (Doctor) -> Unit ) : RecyclerView.Adapter<DoctorAdapter.DoctorViewHolder>() {
+
+override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoctorViewHolder {
+    val view = LayoutInflater.from(parent.context).inflate(R.layout.item_doctor, parent, false)
+    return DoctorViewHolder(view)
+}
+
+override fun onBindViewHolder(holder: DoctorViewHolder, position: Int) {
+    val doctor = doctors[position]
+    holder.bind(doctor)
+    holder.itemView.setOnClickListener {
+        onDoctorSelected(doctor)
+    }
+}
+
+override fun getItemCount(): Int = doctors.size
+
+class DoctorViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    private val nameTextView: TextView = itemView.findViewById(R.id.textView_doctor_name)
+    private val specialtyTextView: TextView = itemView.findViewById(R.id.textView_doctor_specialty)
+
+    fun bind(doctor: Doctor) {
+        nameTextView.text = doctor.name
+        specialtyTextView.text = doctor.specialty
+    }
+}
+}
+
+
+
+SharedViewModel.kt
+SharedViewModel es una clase que extiende ViewModel, diseñada para mantener y gestionar datos relacionados con la UI durante cambios de configuración, como la rotación de pantalla. selectedDoctor: Un MutableLiveData que almacena el doctor seleccionado. Permite observar cambios en el doctor elegido desde diferentes fragments. appointmentDate: Un MutableLiveData que almacena la fecha de la cita. appointmentTime: Un MutableLiveData que almacena la hora de la cita.
+
+package com.example.reservadecitasmdicas
+
+import androidx.lifecycle.MutableLiveData import androidx.lifecycle.ViewModel
+
+class SharedViewModel : ViewModel() { val selectedDoctor = MutableLiveData() val appointmentDate = MutableLiveData() val appointmentTime = MutableLiveData() }
+
+
+
+DoctorSelectionFragment.kt
+DoctorSelectionFragment es un fragmento que permite a los usuarios seleccionar un doctor de una lista. Utiliza un RecyclerView para mostrar la lista de doctores. El LinearLayoutManager se usa para mostrar los elementos de manera vertical. Al seleccionar un doctor, se almacena en el ViewModel compartido (SharedViewModel) y se navega al AppointmentDetailsFragment para continuar con la reserva de la cita.
+
+package com.example.reservadecitasmdicas
+
+import android.os.Bundle import androidx.fragment.app.Fragment import androidx.lifecycle.ViewModelProvider import android.view.LayoutInflater import android.view.View import android.view.ViewGroup import androidx.recyclerview.widget.LinearLayoutManager import androidx.recyclerview.widget.RecyclerView
+
+class DoctorSelectionFragment : Fragment() {
+
+private lateinit var viewModel: SharedViewModel
+
+override fun onCreateView(
+    inflater: LayoutInflater, container: ViewGroup?,
+    savedInstanceState: Bundle?
+): View? {
+    val view = inflater.inflate(R.layout.fragment_doctor_selection, container, false)
+
+
+    viewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
+
+
+    val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView_doctors)
+    recyclerView.layoutManager = LinearLayoutManager(requireContext())
+    recyclerView.adapter = DoctorAdapter(getDoctors(), onDoctorSelected)
+
+    return view
+}
+
+
+private fun getDoctors(): List<Doctor> {
+    return listOf(
+        Doctor("Dr. John Doe", "Cardiología", "Disponible"),
+        Doctor("Dra. Jane Smith", "Dermatología", "Disponible"),
+
+    )
+}
+
+
+private val onDoctorSelected: (Doctor) -> Unit = { doctor ->
+    viewModel.selectedDoctor.value = doctor
+
+
+    parentFragmentManager.beginTransaction()
+        .replace(R.id.fragment_container_view, AppointmentDetailsFragment())
+        .addToBackStack(null)
+        .commit()
+}
+}
+
+
+
+AppointmentDetailsFragment
+AppointmentDetailsFragment permite a los usuarios seleccionar la fecha y hora para la cita con el doctor previamente elegido.
+
+Muestra el nombre y especialidad del doctor usando TextView. Utiliza DatePicker y TimePicker para que el usuario elija la fecha y hora.
+
+Cuando el usuario hace clic en el botón "Siguiente", se almacenan los valores de fecha y hora en el ViewModel y se navega al ConfirmationFragment.
+
+package com.example.reservadecitasmdicas
+
+import android.os.Bundle import android.view.LayoutInflater import android.view.View import android.view.ViewGroup import android.widget.Button import android.widget.DatePicker import android.widget.TextView import android.widget.TimePicker import androidx.fragment.app.Fragment import androidx.lifecycle.ViewModelProvider
+
+class AppointmentDetailsFragment : Fragment() {
+
+private lateinit var viewModel: SharedViewModel
+private lateinit var datePicker: DatePicker
+private lateinit var timePicker: TimePicker
+
+override fun onCreateView(
+    inflater: LayoutInflater, container: ViewGroup?,
+    savedInstanceState: Bundle?
+): View? {
+    val view = inflater.inflate(R.layout.fragment_appointment_details, container, false)
+
+
+    viewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
+
+
+    val doctorNameTextView = view.findViewById<TextView>(R.id.textView_doctor_name)
+    val doctorSpecialtyTextView = view.findViewById<TextView>(R.id.textView_doctor_specialty)
+    val selectedDoctor = viewModel.selectedDoctor.value
+    doctorNameTextView.text = selectedDoctor?.name
+    doctorSpecialtyTextView.text = selectedDoctor?.specialty
+
+
+    datePicker = view.findViewById(R.id.datePicker)
+    timePicker = view.findViewById(R.id.timePicker)
+
+
+    val nextButton = view.findViewById<Button>(R.id.button_next)
+    nextButton.setOnClickListener {
+
+        val date = "${datePicker.dayOfMonth}/${datePicker.month + 1}/${datePicker.year}"
+        val time = "${timePicker.hour}:${timePicker.minute}"
+
+        viewModel.appointmentDate.value = date
+        viewModel.appointmentTime.value = time
+
+
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container_view, ConfirmationFragment())
+            .addToBackStack(null)
+            .commit()
+    }
+
+    return view
+}
+
+
+ConfirmationFragment
+ConfirmationFragment muestra un resumen de la cita antes de confirmarla. Muestra el nombre y especialidad del doctor, junto con la fecha y hora seleccionadas, usando TextView. Al hacer clic en el botón "Confirmar", se muestra un Toast que indica que la cita ha sido confirmada.
+
+package com.example.reservadecitasmdicas
+
+import android.os.Bundle import android.view.LayoutInflater import android.view.View import android.view.ViewGroup import android.widget.Button import android.widget.TextView import android.widget.Toast import androidx.fragment.app.Fragment import androidx.lifecycle.ViewModelProvider
+
+class ConfirmationFragment : Fragment() {
+
+private lateinit var viewModel: SharedViewModel
+
+override fun onCreateView(
+    inflater: LayoutInflater, container: ViewGroup?,
+    savedInstanceState: Bundle?
+): View? {
+    val view = inflater.inflate(R.layout.fragment_confirmation, container, false)
+
+
+    viewModel = ViewModelProvider(requireActivity()).get(SharedViewModel::class.java)
+
+
+    val doctorNameTextView = view.findViewById<TextView>(R.id.textView_doctor_name)
+    val doctorSpecialtyTextView = view.findViewById<TextView>(R.id.textView_doctor_specialty)
+    val dateTextView = view.findViewById<TextView>(R.id.textView_appointment_date)
+    val timeTextView = view.findViewById<TextView>(R.id.textView_appointment_time)
+
+    doctorNameTextView.text = viewModel.selectedDoctor.value?.name
+    doctorSpecialtyTextView.text = viewModel.selectedDoctor.value?.specialty
+    dateTextView.text = viewModel.appointmentDate.value
+    timeTextView.text = viewModel.appointmentTime.value
+
+
+    val confirmButton = view.findViewById<Button>(R.id.button_confirm)
+    confirmButton.setOnClickListener {
+        Toast.makeText(requireContext(), "Cita confirmada", Toast.LENGTH_SHORT).show()
+    }
+
+    return view
+}
+}
+
+
+
+Resumen Estos fragmentos forman parte de una aplicación para la reserva de citas médicas.
+
+DoctorSelectionFragment: Permite al usuario seleccionar un doctor. AppointmentDetailsFragment: Permite al usuario seleccionar la fecha y hora para la cita. ConfirmationFragment: Muestra un resumen de la cita y permite confirmar la reserva. Cada fragmento interactúa con el SharedViewModel para almacenar y recuperar datos entre las diferentes pantallas.
+
+
+
 
