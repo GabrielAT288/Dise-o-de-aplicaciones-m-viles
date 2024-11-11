@@ -1,6 +1,2 @@
 
-imagenes utilizadas
-
-![image](https://github.com/user-attachments/assets/af056581-0ec0-48f4-b219-0a6b9c5a9307)
-
-
+![Screenshot_20241110_225055](https://github.com/user-attachments/assets/9af278c5-e5cd-4434-89b0-16b8939d7e4b)
